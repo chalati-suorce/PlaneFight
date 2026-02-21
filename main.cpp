@@ -1,3 +1,5 @@
+#define _WIN32_WINNT 0x0600
+#include <windows.h>
 #include <graphics.h>  
 #include <conio.h>
 #include <list>
@@ -6,12 +8,12 @@
 #include <ctime>
 #include <tchar.h>
 
-// ÒıÈëÍ¸Ã÷ÌùÍ¼ËùĞèµÄ¿â
+// å¼•å…¥é€æ˜è´´å›¾æ‰€éœ€çš„åº“
 #pragma comment(lib, "msimg32.lib")
 
 using namespace std;
 
-// --- ÊÓ¾õÅäÖÃ ---
+//  è§†è§‰é…ç½® 
 const int WIN_WIDTH = 480;
 const int WIN_HEIGHT = 640;
 
@@ -24,7 +26,7 @@ const COLORREF COLOR_TEXT = RGB(240, 240, 240);
 const COLORREF COLOR_BTN_NORMAL = RGB(70, 70, 80);
 const COLORREF COLOR_BTN_HOVER = RGB(90, 90, 100);
 
-// --- ¸¨Öú£º¾ØĞÎÅö×²¼ì²â ---
+//  è¾…åŠ©ï¼šçŸ©å½¢ç¢°æ’æ£€æµ‹ 
 bool isColliding(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) {
     return (x1 < x2 + w2 && x1 + w1 > x2 &&
         y1 < y2 + h2 && y1 + h1 > y2);
@@ -34,12 +36,13 @@ bool isPointInRect(int px, int py, int rx, int ry, int rw, int rh) {
     return (px >= rx && px <= rx + rw && py >= ry && py <= ry + rh);
 }
 
-// --- ¸¨Öú£º»æÖÆ¾ÓÖĞÎÄ×Ö ---
-void outTextCenter(int x, int y, const char* str, int fontSize = 20, const char* fontName = "Î¢ÈíÑÅºÚ") {
+//  è¾…åŠ©ï¼šç»˜åˆ¶å±…ä¸­æ–‡å­— 
+void outTextCenter(int x, int y, const char* str, int fontSize = 20, const char* fontName = "å¾®è½¯é›…é»‘") {
     LOGFONT f;
     gettextstyle(&f);
     f.lfHeight = fontSize;
-    _tcscpy_s(f.lfFaceName, _T("Î¢ÈíÑÅºÚ"));
+    f.lfQuality = ANTIALIASED_QUALITY; // å¢å¼ºæ¸…æ™°åº¦ï¼šå¼€å¯æ–‡å­—æŠ—é”¯é½¿å¹³æ»‘è¾¹ç¼˜
+    _tcscpy_s(f.lfFaceName, _T("å¾®è½¯é›…é»‘"));
     settextstyle(&f);
 
 #ifdef UNICODE
@@ -57,23 +60,23 @@ void outTextCenter(int x, int y, const char* str, int fontSize = 20, const char*
 #endif
 }
 
-// --- ¸¨Öú£º»æÖÆÍ¸Ã÷ PNG ÌùÍ¼ ---
+//  è¾…åŠ©ï¼šç»˜åˆ¶é€æ˜ PNG è´´å›¾ 
 void drawImageAlpha(int x, int y, IMAGE* img) {
     if (!img || img->getwidth() == 0) return;
     HDC dstDC = GetImageHDC();
     HDC srcDC = GetImageHDC(img);
     int w = img->getwidth();
     int h = img->getheight();
-    // Ê¹ÓÃ AlphaBlend ´¦Àí PNG µÄÍ¸Ã÷Í¨µÀ
+    // ä½¿ç”¨ AlphaBlend å¤„ç† PNG çš„é€æ˜é€šé“
     BLENDFUNCTION bf = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
     AlphaBlend(dstDC, x, y, w, h, srcDC, 0, 0, w, h, bf);
 }
 
-// --- È«¾ÖÌùÍ¼×ÊÔ´ ---
+//  å…¨å±€è´´å›¾èµ„æº 
 IMAGE imgPlayer, imgEnemy, imgBulletPlayer, imgBulletEnemy;
 bool hasImgPlayer = false, hasImgEnemy = false, hasImgBulletP = false, hasImgBulletE = false;
 
-// --- »ùÀà ---
+//  åŸºç±» 
 class GameObject {
 public:
     double x, y;
@@ -87,7 +90,7 @@ public:
     virtual bool move() = 0;
 };
 
-// --- Íæ¼Ò×Óµ¯ ---
+//  ç©å®¶å­å¼¹ 
 class Bullet : public GameObject {
 public:
     Bullet(double _x, double _y) : GameObject(_x, _y, 8, 24) {}
@@ -103,12 +106,12 @@ public:
     }
 
     bool move() override {
-        y -= 12; // Íæ¼Ò×Óµ¯ÏòÉÏ
+        y -= 12; // ç©å®¶å­å¼¹å‘ä¸Š
         return y + height > 0;
     }
 };
 
-// --- µĞ»ú×Óµ¯ ---
+//  æ•Œæœºå­å¼¹ 
 class EnemyBullet : public GameObject {
 public:
     EnemyBullet(double _x, double _y) : GameObject(_x, _y, 8, 24) {}
@@ -118,18 +121,18 @@ public:
             drawImageAlpha((int)x, (int)y, &imgBulletEnemy);
         }
         else {
-            setfillcolor(RGB(255, 100, 100)); // ºìÉ«±¸ÓÃ¼¤¹â
+            setfillcolor(RGB(255, 100, 100)); // çº¢è‰²å¤‡ç”¨æ¿€å…‰
             solidrectangle((int)x, (int)y, (int)x + width, (int)y + height);
         }
     }
 
     bool move() override {
-        y += 7; // µĞ»ú×Óµ¯ÏòÏÂ
+        y += 7; // æ•Œæœºå­å¼¹å‘ä¸‹
         return y < WIN_HEIGHT;
     }
 };
 
-// --- µĞ»ú ---
+//  æ•Œæœº 
 class Enemy : public GameObject {
 public:
     Enemy(double _x, double _y) : GameObject(_x, _y, 40, 40) {}
@@ -155,7 +158,7 @@ public:
     }
 };
 
-// --- Íæ¼Ò ---
+//  ç©å®¶ 
 class Player : public GameObject {
 public:
     Player() : GameObject(WIN_WIDTH / 2 - 20, WIN_HEIGHT - 60, 48, 48) {}
@@ -187,7 +190,7 @@ public:
     }
 };
 
-// --- UI °´Å¥ ---
+//  UI æŒ‰é’® 
 struct Button {
     int x, y, w, h;
     string text;
@@ -202,7 +205,7 @@ struct Button {
         solidrectangle(x, y, x + w, y + h);
         setbkmode(TRANSPARENT);
         settextcolor(WHITE);
-        outTextCenter(x + w / 2, y + h / 2, text.c_str(), 24, "Î¢ÈíÑÅºÚ");
+        outTextCenter(x + w / 2, y + h / 2, text.c_str(), 24, "å¾®è½¯é›…é»‘");
     }
 
     bool update(const MOUSEMSG& msg) {
@@ -211,13 +214,13 @@ struct Button {
     }
 };
 
-// --- ÓÎÏ·¹ÜÀíÆ÷ ---
+//  æ¸¸æˆç®¡ç†å™¨ 
 class GameManager {
 private:
     Player* player;
     list<Bullet*> bullets;
     list<Enemy*> enemies;
-    list<EnemyBullet*> enemyBullets; // ĞÂÔöµĞ»ú×Óµ¯Á´±í
+    list<EnemyBullet*> enemyBullets; // æ–°å¢æ•Œæœºå­å¼¹é“¾è¡¨
 
     int score;
     bool gameOver;
@@ -237,11 +240,11 @@ public:
         initgraph(WIN_WIDTH, WIN_HEIGHT);
         setbkcolor(COLOR_BG);
 
-        // ¼ÓÔØ±³¾°
-        loadimage(&bgImg, _T("bg.jpg"), WIN_WIDTH, WIN_HEIGHT);
+        // åŠ è½½èƒŒæ™¯
+        loadimage(&bgImg, _T("purple.png"), WIN_WIDTH, WIN_HEIGHT);
         hasBgImg = (bgImg.getwidth() > 0);
 
-        // Í³Ò»¼ÓÔØÌùÍ¼×ÊÔ´²¢°´ËùĞè´óĞ¡Ëõ·Å
+        // ç»Ÿä¸€åŠ è½½è´´å›¾èµ„æºå¹¶æŒ‰æ‰€éœ€å¤§å°ç¼©æ”¾
         loadimage(&imgPlayer, _T("playerShip_blue.png"), 48, 48, true);
         hasImgPlayer = (imgPlayer.getwidth() > 0);
 
@@ -304,8 +307,8 @@ public:
             }
             else if (currentState == END) {
                 showGameOver();
-                if (currentState == PLAYING) resetGame(); // ½áÊøºó°´¼üÖØĞÂ¿ªÊ¼
-                if (currentState == MENU) break;          // °´ÏÂÍË³ö
+                if (currentState == PLAYING) resetGame(); // ç»“æŸåæŒ‰é”®é‡æ–°å¼€å§‹
+                if (currentState == MENU) break;          // æŒ‰ä¸‹é€€å‡º
             }
 
             FlushBatchDraw();
@@ -335,17 +338,17 @@ private:
         setbkmode(TRANSPARENT);
 
         settextcolor(RGB(20, 20, 20));
-        outTextCenter(WIN_WIDTH / 2 + 2, 122, "»ùÓÚÁ´±íµÄ·É»ú´óÕ½", 32, "Î¢ÈíÑÅºÚ");
-        outTextCenter(WIN_WIDTH / 2 + 2, 162, "ÌùÍ¼°æ", 32, "Î¢ÈíÑÅºÚ");
+        outTextCenter(WIN_WIDTH / 2 + 2, 122, "åŸºäºé“¾è¡¨çš„é£æœºå¤§æˆ˜æ¸¸æˆ", 32, "å¾®è½¯é›…é»‘");
+        //outTextCenter(WIN_WIDTH / 2 + 2, 162, "è´´å›¾ç‰ˆ", 32, "å¾®è½¯é›…é»‘");
 
         settextcolor(COLOR_TEXT);
-        outTextCenter(WIN_WIDTH / 2, 120, "»ùÓÚÁ´±íµÄ·É»ú´óÕ½", 32, "Î¢ÈíÑÅºÚ");
-        outTextCenter(WIN_WIDTH / 2, 160, "ÌùÍ¼°æ", 32, "Î¢ÈíÑÅºÚ");
+        outTextCenter(WIN_WIDTH / 2, 120, "åŸºäºé“¾è¡¨çš„é£æœºå¤§æˆ˜æ¸¸æˆ", 32, "å¾®è½¯é›…é»‘");
+        //outTextCenter(WIN_WIDTH / 2, 160, "è´´å›¾ç‰ˆ", 32, "å¾®è½¯é›…é»‘");
 
         settextcolor(RGB(150, 150, 150));
-        outTextCenter(WIN_WIDTH / 2, 580, "¿ª·¢Õß£º·½ºã¿µ¡¢Ê¯ÑÒ¡¢¹¢ÀÖ¡¢ÍõÖÇĞù", 20, "Î¢ÈíÑÅºÚ");
+        outTextCenter(WIN_WIDTH / 2, 580, "å¼€å‘è€…ï¼šæ–¹æ’åº·ã€çŸ³å²©ã€è€¿ä¹ã€ç‹æ™ºè½©", 20, "å¾®è½¯é›…é»‘");
 
-        static Button startBtn(WIN_WIDTH / 2 - 80, 400, 160, 50, "¿ªÊ¼ÓÎÏ·");
+        static Button startBtn(WIN_WIDTH / 2 - 80, 400, 160, 50, "å¼€å§‹æ¸¸æˆ");
 
         MOUSEMSG msg = { 0 };
         while (MouseHit()) msg = GetMouseMsg();
@@ -372,8 +375,8 @@ private:
 
         setbkmode(TRANSPARENT);
         settextcolor(WHITE);
-        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 - 15, "ÓÎÏ·ÔİÍ£", 30, "Î¢ÈíÑÅºÚ");
-        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 + 25, "°´ [P] ¼ü¼ÌĞø", 16, "Î¢ÈíÑÅºÚ");
+        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 - 15, "æ¸¸æˆæš‚åœ", 30, "å¾®è½¯é›…é»‘");
+        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 + 25, "æŒ‰ [P] é”®ç»§ç»­", 16, "å¾®è½¯é›…é»‘");
 
         if (pauseCooldown > 0) pauseCooldown--;
 
@@ -388,7 +391,6 @@ private:
 
         if (shootTimer > 0) shootTimer--;
         if (GetAsyncKeyState(VK_SPACE) && shootTimer <= 0) {
-            // ¸ù¾İÕ½»ú¿í¶Èµ÷ÕûË«·¢×Óµ¯µÄÉú³ÉÎ»ÖÃ
             bullets.push_back(new Bullet(player->x + 6, player->y));
             bullets.push_back(new Bullet(player->x + player->width - 14, player->y));
             shootTimer = 10;
@@ -402,13 +404,11 @@ private:
     }
 
     void update() {
-        // Éú³ÉµĞ»ú
         if (frameCount % 30 == 0) {
             int randX = rand() % (WIN_WIDTH - 40);
             enemies.push_back(new Enemy(randX, -40));
         }
 
-        // Íæ¼Ò×Óµ¯¸üĞÂ
         for (auto it = bullets.begin(); it != bullets.end(); ) {
             if (!(*it)->move()) {
                 delete* it;
@@ -417,14 +417,12 @@ private:
             else { ++it; }
         }
 
-        // µĞ»ú×Óµ¯¸üĞÂ (¼ì²âÓëÍæ¼ÒÅö×²)
         for (auto it = enemyBullets.begin(); it != enemyBullets.end(); ) {
             if (!(*it)->move()) {
                 delete* it;
                 it = enemyBullets.erase(it);
                 continue;
             }
-            // µĞ»ú×Óµ¯´òÖĞÍæ¼Ò (ËõĞ¡Íæ¼Ò hitbox Ôö¼ÓÈİ´í)
             if (isColliding((*it)->x, (*it)->y, (*it)->width, (*it)->height,
                 player->x + 10, player->y + 10, player->width - 20, player->height - 20)) {
                 gameOver = true;
@@ -432,7 +430,6 @@ private:
             ++it;
         }
 
-        // µĞ»ú¸üĞÂ
         for (auto it = enemies.begin(); it != enemies.end(); ) {
             bool isDead = false;
             if (!(*it)->move()) {
@@ -441,18 +438,15 @@ private:
                 continue;
             }
 
-            // µĞ»úËæ»ú¿ª»ğ (Ô¼2%¸ÅÂÊ/Ö¡)
             if (rand() % 100 < 2) {
                 enemyBullets.push_back(new EnemyBullet((*it)->x + (*it)->width / 2 - 4, (*it)->y + (*it)->height));
             }
 
-            // ×²»÷Íæ¼Ò (ËõĞ¡ hitbox)
             if (isColliding((*it)->x, (*it)->y, (*it)->width, (*it)->height,
                 player->x + 10, player->y + 10, player->width - 20, player->height - 20)) {
                 gameOver = true;
             }
 
-            // Íæ¼Ò×Óµ¯´òÖĞµĞ»ú
             for (auto bIt = bullets.begin(); bIt != bullets.end(); ) {
                 if (isColliding((*bIt)->x, (*bIt)->y, (*bIt)->width, (*bIt)->height,
                     (*it)->x, (*it)->y, (*it)->width, (*it)->height)) {
@@ -481,21 +475,28 @@ private:
         player->draw();
         for (auto b : bullets) b->draw();
         for (auto e : enemies) e->draw();
-        for (auto eb : enemyBullets) eb->draw(); // äÖÈ¾µĞ»ú×Óµ¯
+        for (auto eb : enemyBullets) eb->draw();
 
         setbkmode(TRANSPARENT);
         settextcolor(COLOR_TEXT);
         string scoreText = "SCORE: " + to_string(score);
 
+        // å¢å¼ºæ¸…æ™°åº¦ï¼šä¸ºå·¦ä¸Šè§’åˆ†æ•°æ–‡å­—ä¹Ÿå¼€å¯æŠ—é”¯é½¿
+        LOGFONT f;
+        gettextstyle(&f);
+        f.lfHeight = 20;
+        f.lfWidth = 0;
+        f.lfQuality = ANTIALIASED_QUALITY;
+        _tcscpy_s(f.lfFaceName, _T("Consolas"));
+        settextstyle(&f);
+
 #ifdef UNICODE
         int len = MultiByteToWideChar(CP_ACP, 0, scoreText.c_str(), -1, NULL, 0);
         wchar_t* wstr = new wchar_t[len];
         MultiByteToWideChar(CP_ACP, 0, scoreText.c_str(), -1, wstr, len);
-        settextstyle(20, 0, _T("Consolas"));
         outtextxy(15, 15, wstr);
         delete[] wstr;
 #else
-        settextstyle(20, 0, _T("Consolas"));
         outtextxy(15, 15, scoreText.c_str());
 #endif
     }
@@ -511,13 +512,12 @@ private:
 
         settextcolor(WHITE);
         string scoreMsg = "Final Score: " + to_string(score);
-        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 + 20, scoreMsg.c_str(), 24, "Î¢ÈíÑÅºÚ");
+        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 + 20, scoreMsg.c_str(), 24, "å¾®è½¯é›…é»‘");
 
-        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 + 60, "°´ [¿Õ¸ñ] ÖØÊÔ£¬°´ [ESC] ÍË³ö", 16, "Î¢ÈíÑÅºÚ");
+        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 + 60, "æŒ‰ [ç©ºæ ¼] é‡è¯•ï¼ŒæŒ‰ [ESC] é€€å‡º", 16, "å¾®è½¯é›…é»‘");
 
         FlushBatchDraw();
 
-        // ¼òµ¥µÄ½áËã»­Ãæ°´¼üÂß¼­
         while (true) {
             if (GetAsyncKeyState(VK_SPACE) & 0x8000) {
                 currentState = PLAYING;
@@ -529,12 +529,13 @@ private:
             }
             Sleep(50);
         }
-        // ÇåÀí°´¼ü»º³å£¬·ÀÖ¹ÖØĞÂ¿ªÊ¼ºóÖ±½Ó·¢Éä×Óµ¯
         while (GetAsyncKeyState(VK_SPACE) & 0x8000) Sleep(10);
     }
 };
 
 int main() {
+    SetProcessDPIAware();
+
     GameManager game;
     game.run();
     return 0;
