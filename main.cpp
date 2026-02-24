@@ -1,3 +1,5 @@
+#define _WIN32_WINNT 0x0600
+#include <windows.h>
 #include <graphics.h>  
 #include <conio.h>
 #include <list>
@@ -11,7 +13,7 @@
 
 using namespace std;
 
-// --- 视觉配置 ---
+//  视觉配置 
 const int WIN_WIDTH = 480;
 const int WIN_HEIGHT = 640;
 
@@ -24,7 +26,7 @@ const COLORREF COLOR_TEXT = RGB(240, 240, 240);
 const COLORREF COLOR_BTN_NORMAL = RGB(70, 70, 80);
 const COLORREF COLOR_BTN_HOVER = RGB(90, 90, 100);
 
-// --- 辅助：矩形碰撞检测 ---
+//  辅助：矩形碰撞检测 
 bool isColliding(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) {
     return (x1 < x2 + w2 && x1 + w1 > x2 &&
         y1 < y2 + h2 && y1 + h1 > y2);
@@ -34,11 +36,12 @@ bool isPointInRect(int px, int py, int rx, int ry, int rw, int rh) {
     return (px >= rx && px <= rx + rw && py >= ry && py <= ry + rh);
 }
 
-// --- 辅助：绘制居中文字 ---
+//  辅助：绘制居中文字 
 void outTextCenter(int x, int y, const char* str, int fontSize = 20, const char* fontName = "微软雅黑") {
     LOGFONT f;
     gettextstyle(&f);
     f.lfHeight = fontSize;
+    f.lfQuality = ANTIALIASED_QUALITY; // 增强清晰度：开启文字抗锯齿平滑边缘
     _tcscpy_s(f.lfFaceName, _T("微软雅黑"));
     settextstyle(&f);
 
@@ -57,7 +60,7 @@ void outTextCenter(int x, int y, const char* str, int fontSize = 20, const char*
 #endif
 }
 
-// --- 辅助：绘制透明 PNG 贴图 ---
+//  辅助：绘制透明 PNG 贴图 
 void drawImageAlpha(int x, int y, IMAGE* img) {
     if (!img || img->getwidth() == 0) return;
     HDC dstDC = GetImageHDC();
@@ -69,11 +72,11 @@ void drawImageAlpha(int x, int y, IMAGE* img) {
     AlphaBlend(dstDC, x, y, w, h, srcDC, 0, 0, w, h, bf);
 }
 
-// --- 全局贴图资源 ---
+//  全局贴图资源 
 IMAGE imgPlayer, imgEnemy, imgBulletPlayer, imgBulletEnemy;
 bool hasImgPlayer = false, hasImgEnemy = false, hasImgBulletP = false, hasImgBulletE = false;
 
-// --- 基类 ---
+//  基类 
 class GameObject {
 public:
     double x, y;
@@ -87,7 +90,7 @@ public:
     virtual bool move() = 0;
 };
 
-// --- 玩家子弹 ---
+//  玩家子弹 
 class Bullet : public GameObject {
 public:
     Bullet(double _x, double _y) : GameObject(_x, _y, 8, 24) {}
@@ -108,7 +111,7 @@ public:
     }
 };
 
-// --- 敌机子弹 ---
+//  敌机子弹 
 class EnemyBullet : public GameObject {
 public:
     EnemyBullet(double _x, double _y) : GameObject(_x, _y, 8, 24) {}
@@ -129,7 +132,7 @@ public:
     }
 };
 
-// --- 敌机 ---
+//  敌机 
 class Enemy : public GameObject {
 public:
     Enemy(double _x, double _y) : GameObject(_x, _y, 40, 40) {}
@@ -155,7 +158,7 @@ public:
     }
 };
 
-// --- 玩家 ---
+//  玩家 
 class Player : public GameObject {
 public:
     Player() : GameObject(WIN_WIDTH / 2 - 20, WIN_HEIGHT - 60, 48, 48) {}
@@ -187,7 +190,7 @@ public:
     }
 };
 
-// --- UI 按钮 ---
+//  UI 按钮 
 struct Button {
     int x, y, w, h;
     string text;
@@ -211,7 +214,7 @@ struct Button {
     }
 };
 
-// --- 游戏管理器 ---
+//  游戏管理器 
 class GameManager {
 private:
     Player* player;
@@ -238,7 +241,7 @@ public:
         setbkcolor(COLOR_BG);
 
         // 加载背景
-        loadimage(&bgImg, _T("bg.jpg"), WIN_WIDTH, WIN_HEIGHT);
+        loadimage(&bgImg, _T("purple.png"), WIN_WIDTH, WIN_HEIGHT);
         hasBgImg = (bgImg.getwidth() > 0);
 
         // 统一加载贴图资源并按所需大小缩放
@@ -335,12 +338,12 @@ private:
         setbkmode(TRANSPARENT);
 
         settextcolor(RGB(20, 20, 20));
-        outTextCenter(WIN_WIDTH / 2 + 2, 122, "基于链表的飞机大战", 32, "微软雅黑");
-        outTextCenter(WIN_WIDTH / 2 + 2, 162, "贴图版", 32, "微软雅黑");
+        outTextCenter(WIN_WIDTH / 2 + 2, 122, "基于链表的飞机大战游戏", 32, "微软雅黑");
+        //outTextCenter(WIN_WIDTH / 2 + 2, 162, "贴图版", 32, "微软雅黑");
 
         settextcolor(COLOR_TEXT);
-        outTextCenter(WIN_WIDTH / 2, 120, "基于链表的飞机大战", 32, "微软雅黑");
-        outTextCenter(WIN_WIDTH / 2, 160, "贴图版", 32, "微软雅黑");
+        outTextCenter(WIN_WIDTH / 2, 120, "基于链表的飞机大战游戏", 32, "微软雅黑");
+        //outTextCenter(WIN_WIDTH / 2, 160, "贴图版", 32, "微软雅黑");
 
         settextcolor(RGB(150, 150, 150));
         outTextCenter(WIN_WIDTH / 2, 580, "开发者：方恒康、石岩、耿乐、王智轩", 20, "微软雅黑");
@@ -388,7 +391,6 @@ private:
 
         if (shootTimer > 0) shootTimer--;
         if (GetAsyncKeyState(VK_SPACE) && shootTimer <= 0) {
-            // 根据战机宽度调整双发子弹的生成位置
             bullets.push_back(new Bullet(player->x + 6, player->y));
             bullets.push_back(new Bullet(player->x + player->width - 14, player->y));
             shootTimer = 10;
@@ -402,13 +404,11 @@ private:
     }
 
     void update() {
-        // 生成敌机
         if (frameCount % 30 == 0) {
             int randX = rand() % (WIN_WIDTH - 40);
             enemies.push_back(new Enemy(randX, -40));
         }
 
-        // 玩家子弹更新
         for (auto it = bullets.begin(); it != bullets.end(); ) {
             if (!(*it)->move()) {
                 delete* it;
@@ -417,14 +417,12 @@ private:
             else { ++it; }
         }
 
-        // 敌机子弹更新 (检测与玩家碰撞)
         for (auto it = enemyBullets.begin(); it != enemyBullets.end(); ) {
             if (!(*it)->move()) {
                 delete* it;
                 it = enemyBullets.erase(it);
                 continue;
             }
-            // 敌机子弹打中玩家 (缩小玩家 hitbox 增加容错)
             if (isColliding((*it)->x, (*it)->y, (*it)->width, (*it)->height,
                 player->x + 10, player->y + 10, player->width - 20, player->height - 20)) {
                 gameOver = true;
@@ -432,7 +430,6 @@ private:
             ++it;
         }
 
-        // 敌机更新
         for (auto it = enemies.begin(); it != enemies.end(); ) {
             bool isDead = false;
             if (!(*it)->move()) {
@@ -441,18 +438,15 @@ private:
                 continue;
             }
 
-            // 敌机随机开火 (约2%概率/帧)
             if (rand() % 100 < 2) {
                 enemyBullets.push_back(new EnemyBullet((*it)->x + (*it)->width / 2 - 4, (*it)->y + (*it)->height));
             }
 
-            // 撞击玩家 (缩小 hitbox)
             if (isColliding((*it)->x, (*it)->y, (*it)->width, (*it)->height,
                 player->x + 10, player->y + 10, player->width - 20, player->height - 20)) {
                 gameOver = true;
             }
 
-            // 玩家子弹打中敌机
             for (auto bIt = bullets.begin(); bIt != bullets.end(); ) {
                 if (isColliding((*bIt)->x, (*bIt)->y, (*bIt)->width, (*bIt)->height,
                     (*it)->x, (*it)->y, (*it)->width, (*it)->height)) {
@@ -481,21 +475,28 @@ private:
         player->draw();
         for (auto b : bullets) b->draw();
         for (auto e : enemies) e->draw();
-        for (auto eb : enemyBullets) eb->draw(); // 渲染敌机子弹
+        for (auto eb : enemyBullets) eb->draw();
 
         setbkmode(TRANSPARENT);
         settextcolor(COLOR_TEXT);
         string scoreText = "SCORE: " + to_string(score);
 
+        // 增强清晰度：为左上角分数文字也开启抗锯齿
+        LOGFONT f;
+        gettextstyle(&f);
+        f.lfHeight = 20;
+        f.lfWidth = 0;
+        f.lfQuality = ANTIALIASED_QUALITY;
+        _tcscpy_s(f.lfFaceName, _T("Consolas"));
+        settextstyle(&f);
+
 #ifdef UNICODE
         int len = MultiByteToWideChar(CP_ACP, 0, scoreText.c_str(), -1, NULL, 0);
         wchar_t* wstr = new wchar_t[len];
         MultiByteToWideChar(CP_ACP, 0, scoreText.c_str(), -1, wstr, len);
-        settextstyle(20, 0, _T("Consolas"));
         outtextxy(15, 15, wstr);
         delete[] wstr;
 #else
-        settextstyle(20, 0, _T("Consolas"));
         outtextxy(15, 15, scoreText.c_str());
 #endif
     }
@@ -517,7 +518,6 @@ private:
 
         FlushBatchDraw();
 
-        // 简单的结算画面按键逻辑
         while (true) {
             if (GetAsyncKeyState(VK_SPACE) & 0x8000) {
                 currentState = PLAYING;
@@ -529,12 +529,13 @@ private:
             }
             Sleep(50);
         }
-        // 清理按键缓冲，防止重新开始后直接发射子弹
         while (GetAsyncKeyState(VK_SPACE) & 0x8000) Sleep(10);
     }
 };
 
 int main() {
+    SetProcessDPIAware();
+
     GameManager game;
     game.run();
     return 0;
