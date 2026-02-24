@@ -8,12 +8,12 @@
 #include <ctime>
 #include <tchar.h>
 
-// ÒıÈëÍ¸Ã÷ÌùÍ¼ËùĞèµÄ¿â
+// å¼•å…¥é€æ˜è´´å›¾æ‰€éœ€çš„åº“
 #pragma comment(lib, "msimg32.lib")
 
 using namespace std;
 
-//  ÊÓ¾õÅäÖÃ 
+// --- ï¿½Ó¾ï¿½ï¿½ï¿½ï¿½ï¿½ ---
 const int WIN_WIDTH = 480;
 const int WIN_HEIGHT = 640;
 
@@ -26,7 +26,7 @@ const COLORREF COLOR_TEXT = RGB(240, 240, 240);
 const COLORREF COLOR_BTN_NORMAL = RGB(70, 70, 80);
 const COLORREF COLOR_BTN_HOVER = RGB(90, 90, 100);
 
-//  ¸¨Öú£º¾ØĞÎÅö×²¼ì²â 
+// --- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×²ï¿½ï¿½ï¿½ ---
 bool isColliding(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) {
     return (x1 < x2 + w2 && x1 + w1 > x2 &&
         y1 < y2 + h2 && y1 + h1 > y2);
@@ -36,13 +36,12 @@ bool isPointInRect(int px, int py, int rx, int ry, int rw, int rh) {
     return (px >= rx && px <= rx + rw && py >= ry && py <= ry + rh);
 }
 
-//  ¸¨Öú£º»æÖÆ¾ÓÖĞÎÄ×Ö 
-void outTextCenter(int x, int y, const char* str, int fontSize = 20, const char* fontName = "Î¢ÈíÑÅºÚ") {
+// --- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ---
+void outTextCenter(int x, int y, const char* str, int fontSize = 20, const char* fontName = "Î¢ï¿½ï¿½ï¿½Åºï¿½") {
     LOGFONT f;
     gettextstyle(&f);
     f.lfHeight = fontSize;
-    f.lfQuality = ANTIALIASED_QUALITY; // ÔöÇ¿ÇåÎú¶È£º¿ªÆôÎÄ×Ö¿¹¾â³İÆ½»¬±ßÔµ
-    _tcscpy_s(f.lfFaceName, _T("Î¢ÈíÑÅºÚ"));
+    _tcscpy_s(f.lfFaceName, _T("Î¢ï¿½ï¿½ï¿½Åºï¿½"));
     settextstyle(&f);
 
 #ifdef UNICODE
@@ -60,23 +59,23 @@ void outTextCenter(int x, int y, const char* str, int fontSize = 20, const char*
 #endif
 }
 
-//  ¸¨Öú£º»æÖÆÍ¸Ã÷ PNG ÌùÍ¼ 
+// --- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ PNG ï¿½ï¿½Í¼ ---
 void drawImageAlpha(int x, int y, IMAGE* img) {
     if (!img || img->getwidth() == 0) return;
     HDC dstDC = GetImageHDC();
     HDC srcDC = GetImageHDC(img);
     int w = img->getwidth();
     int h = img->getheight();
-    // Ê¹ÓÃ AlphaBlend ´¦Àí PNG µÄÍ¸Ã÷Í¨µÀ
+    // ä½¿ç”¨ AlphaBlend å¤„ç† PNG çš„é€æ˜é€šé“
     BLENDFUNCTION bf = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
     AlphaBlend(dstDC, x, y, w, h, srcDC, 0, 0, w, h, bf);
 }
 
-//  È«¾ÖÌùÍ¼×ÊÔ´ 
+// --- È«ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½Ô´ ---
 IMAGE imgPlayer, imgEnemy, imgBulletPlayer, imgBulletEnemy;
 bool hasImgPlayer = false, hasImgEnemy = false, hasImgBulletP = false, hasImgBulletE = false;
 
-//  »ùÀà 
+// --- ï¿½ï¿½ï¿½ï¿½ ---
 class GameObject {
 public:
     double x, y;
@@ -90,7 +89,7 @@ public:
     virtual bool move() = 0;
 };
 
-//  Íæ¼Ò×Óµ¯ 
+// --- ï¿½ï¿½ï¿½ï¿½Óµï¿½ ---
 class Bullet : public GameObject {
 public:
     Bullet(double _x, double _y) : GameObject(_x, _y, 8, 24) {}
@@ -106,12 +105,12 @@ public:
     }
 
     bool move() override {
-        y -= 12; // Íæ¼Ò×Óµ¯ÏòÉÏ
+        y -= 12; // ç©å®¶å­å¼¹å‘ä¸Š
         return y + height > 0;
     }
 };
 
-//  µĞ»ú×Óµ¯ 
+// --- ï¿½Ğ»ï¿½ï¿½Óµï¿½ ---
 class EnemyBullet : public GameObject {
 public:
     EnemyBullet(double _x, double _y) : GameObject(_x, _y, 8, 24) {}
@@ -121,18 +120,18 @@ public:
             drawImageAlpha((int)x, (int)y, &imgBulletEnemy);
         }
         else {
-            setfillcolor(RGB(255, 100, 100)); // ºìÉ«±¸ÓÃ¼¤¹â
+            setfillcolor(RGB(255, 100, 100)); // çº¢è‰²å¤‡ç”¨æ¿€å…‰
             solidrectangle((int)x, (int)y, (int)x + width, (int)y + height);
         }
     }
 
     bool move() override {
-        y += 7; // µĞ»ú×Óµ¯ÏòÏÂ
+        y += 7; // æ•Œæœºå­å¼¹å‘ä¸‹
         return y < WIN_HEIGHT;
     }
 };
 
-//  µĞ»ú 
+// --- ï¿½Ğ»ï¿½ ---
 class Enemy : public GameObject {
 public:
     Enemy(double _x, double _y) : GameObject(_x, _y, 40, 40) {}
@@ -158,7 +157,7 @@ public:
     }
 };
 
-//  Íæ¼Ò 
+// --- ï¿½ï¿½ï¿½ ---
 class Player : public GameObject {
 public:
     Player() : GameObject(WIN_WIDTH / 2 - 20, WIN_HEIGHT - 60, 48, 48) {}
@@ -190,7 +189,7 @@ public:
     }
 };
 
-//  UI °´Å¥ 
+// --- UI ï¿½ï¿½Å¥ ---
 struct Button {
     int x, y, w, h;
     string text;
@@ -205,7 +204,7 @@ struct Button {
         solidrectangle(x, y, x + w, y + h);
         setbkmode(TRANSPARENT);
         settextcolor(WHITE);
-        outTextCenter(x + w / 2, y + h / 2, text.c_str(), 24, "Î¢ÈíÑÅºÚ");
+        outTextCenter(x + w / 2, y + h / 2, text.c_str(), 24, "å¾®è½¯é›…é»‘");
     }
 
     bool update(const MOUSEMSG& msg) {
@@ -214,13 +213,13 @@ struct Button {
     }
 };
 
-//  ÓÎÏ·¹ÜÀíÆ÷ 
+// --- ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ---
 class GameManager {
 private:
     Player* player;
     list<Bullet*> bullets;
     list<Enemy*> enemies;
-    list<EnemyBullet*> enemyBullets; // ĞÂÔöµĞ»ú×Óµ¯Á´±í
+    list<EnemyBullet*> enemyBullets; // æ–°å¢æ•Œæœºå­å¼¹é“¾è¡¨
 
     int score;
     bool gameOver;
@@ -240,11 +239,11 @@ public:
         initgraph(WIN_WIDTH, WIN_HEIGHT);
         setbkcolor(COLOR_BG);
 
-        // ¼ÓÔØ±³¾°
-        loadimage(&bgImg, _T("purple.png"), WIN_WIDTH, WIN_HEIGHT);
+        // ï¿½ï¿½ï¿½Ø±ï¿½ï¿½ï¿½
+        loadimage(&bgImg, _T("bg.jpg"), WIN_WIDTH, WIN_HEIGHT);
         hasBgImg = (bgImg.getwidth() > 0);
 
-        // Í³Ò»¼ÓÔØÌùÍ¼×ÊÔ´²¢°´ËùĞè´óĞ¡Ëõ·Å
+        // ç»Ÿä¸€åŠ è½½è´´å›¾èµ„æºå¹¶æŒ‰æ‰€éœ€å¤§å°ç¼©æ”¾
         loadimage(&imgPlayer, _T("playerShip_blue.png"), 48, 48, true);
         hasImgPlayer = (imgPlayer.getwidth() > 0);
 
@@ -307,8 +306,8 @@ public:
             }
             else if (currentState == END) {
                 showGameOver();
-                if (currentState == PLAYING) resetGame(); // ½áÊøºó°´¼üÖØĞÂ¿ªÊ¼
-                if (currentState == MENU) break;          // °´ÏÂÍË³ö
+                if (currentState == PLAYING) resetGame(); // ç»“æŸåæŒ‰é”®é‡æ–°å¼€å§‹
+                if (currentState == MENU) break;          // æŒ‰ä¸‹é€€å‡º
             }
 
             FlushBatchDraw();
@@ -338,17 +337,17 @@ private:
         setbkmode(TRANSPARENT);
 
         settextcolor(RGB(20, 20, 20));
-        outTextCenter(WIN_WIDTH / 2 + 2, 122, "»ùÓÚÁ´±íµÄ·É»ú´óÕ½ÓÎÏ·", 32, "Î¢ÈíÑÅºÚ");
-        //outTextCenter(WIN_WIDTH / 2 + 2, 162, "ÌùÍ¼°æ", 32, "Î¢ÈíÑÅºÚ");
+        outTextCenter(WIN_WIDTH / 2 + 2, 122, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä·É»ï¿½ï¿½ï¿½Õ½", 32, "Î¢ï¿½ï¿½ï¿½Åºï¿½");
+        outTextCenter(WIN_WIDTH / 2 + 2, 162, "ï¿½ï¿½Í¼ï¿½ï¿½", 32, "Î¢ï¿½ï¿½ï¿½Åºï¿½");
 
         settextcolor(COLOR_TEXT);
-        outTextCenter(WIN_WIDTH / 2, 120, "»ùÓÚÁ´±íµÄ·É»ú´óÕ½ÓÎÏ·", 32, "Î¢ÈíÑÅºÚ");
-        //outTextCenter(WIN_WIDTH / 2, 160, "ÌùÍ¼°æ", 32, "Î¢ÈíÑÅºÚ");
+        outTextCenter(WIN_WIDTH / 2, 120, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä·É»ï¿½ï¿½ï¿½Õ½", 32, "Î¢ï¿½ï¿½ï¿½Åºï¿½");
+        outTextCenter(WIN_WIDTH / 2, 160, "ï¿½ï¿½Í¼ï¿½ï¿½", 32, "Î¢ï¿½ï¿½ï¿½Åºï¿½");
 
         settextcolor(RGB(150, 150, 150));
-        outTextCenter(WIN_WIDTH / 2, 580, "¿ª·¢Õß£º·½ºã¿µ¡¢Ê¯ÑÒ¡¢¹¢ÀÖ¡¢ÍõÖÇĞù", 20, "Î¢ÈíÑÅºÚ");
+        outTextCenter(WIN_WIDTH / 2, 580, "å¼€å‘è€…ï¼šæ–¹æ’åº·ã€çŸ³å²©ã€è€¿ä¹ã€ç‹æ™ºè½©", 20, "å¾®è½¯é›…é»‘");
 
-        static Button startBtn(WIN_WIDTH / 2 - 80, 400, 160, 50, "¿ªÊ¼ÓÎÏ·");
+        static Button startBtn(WIN_WIDTH / 2 - 80, 400, 160, 50, "å¼€å§‹æ¸¸æˆ");
 
         MOUSEMSG msg = { 0 };
         while (MouseHit()) msg = GetMouseMsg();
@@ -375,8 +374,8 @@ private:
 
         setbkmode(TRANSPARENT);
         settextcolor(WHITE);
-        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 - 15, "ÓÎÏ·ÔİÍ£", 30, "Î¢ÈíÑÅºÚ");
-        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 + 25, "°´ [P] ¼ü¼ÌĞø", 16, "Î¢ÈíÑÅºÚ");
+        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 - 15, "æ¸¸æˆæš‚åœ", 30, "å¾®è½¯é›…é»‘");
+        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 + 25, "æŒ‰ [P] é”®ç»§ç»­", 16, "å¾®è½¯é›…é»‘");
 
         if (pauseCooldown > 0) pauseCooldown--;
 
@@ -481,15 +480,6 @@ private:
         settextcolor(COLOR_TEXT);
         string scoreText = "SCORE: " + to_string(score);
 
-        // ÔöÇ¿ÇåÎú¶È£ºÎª×óÉÏ½Ç·ÖÊıÎÄ×ÖÒ²¿ªÆô¿¹¾â³İ
-        LOGFONT f;
-        gettextstyle(&f);
-        f.lfHeight = 20;
-        f.lfWidth = 0;
-        f.lfQuality = ANTIALIASED_QUALITY;
-        _tcscpy_s(f.lfFaceName, _T("Consolas"));
-        settextstyle(&f);
-
 #ifdef UNICODE
         int len = MultiByteToWideChar(CP_ACP, 0, scoreText.c_str(), -1, NULL, 0);
         wchar_t* wstr = new wchar_t[len];
@@ -512,9 +502,9 @@ private:
 
         settextcolor(WHITE);
         string scoreMsg = "Final Score: " + to_string(score);
-        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 + 20, scoreMsg.c_str(), 24, "Î¢ÈíÑÅºÚ");
+        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 + 20, scoreMsg.c_str(), 24, "å¾®è½¯é›…é»‘");
 
-        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 + 60, "°´ [¿Õ¸ñ] ÖØÊÔ£¬°´ [ESC] ÍË³ö", 16, "Î¢ÈíÑÅºÚ");
+        outTextCenter(WIN_WIDTH / 2, WIN_HEIGHT / 2 + 60, "æŒ‰ [ç©ºæ ¼] é‡è¯•ï¼ŒæŒ‰ [ESC] é€€å‡º", 16, "å¾®è½¯é›…é»‘");
 
         FlushBatchDraw();
 
