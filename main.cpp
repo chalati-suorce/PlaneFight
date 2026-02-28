@@ -8,8 +8,6 @@
  * 包含完整的状态机（主菜单、游戏中、暂停、结束）、难度控制系统、
  * UI 交互系统以及基于 alpha 通道的透明贴图渲染系统。
  *
- * Version:  2.0.0 (Extended)
- * Created:  2023-2024
  * Compiler:  MSVC / Visual Studio
  *
  * Author:  方恒康、石岩、耿乐、王智轩
@@ -32,12 +30,6 @@
 #pragma comment(lib, "msimg32.lib")
 
 using namespace std;
-
-/*
- * =====================================================================================
- * SECTION 1: CONFIGURATION & CONSTANTS
- * =====================================================================================
- */
 
  /**
   * @class GameConfig
@@ -95,11 +87,6 @@ const COLORREF GameConfig::COLOR_BULLET = RGB(255, 200, 50);
 const COLORREF GameConfig::COLOR_TEXT = RGB(240, 240, 240);
 
 
-/*
- * =====================================================================================
- * SECTION 2: MATH & UTILITY CLASSES
- * =====================================================================================
- */
 
  /**
   * @class Vector2D
@@ -183,11 +170,6 @@ public:
 };
 
 
-/*
- * =====================================================================================
- * SECTION 3: GRAPHICS & RENDER ENGINE
- * =====================================================================================
- */
 
  /**
   * @class GraphicsEngine
@@ -256,12 +238,6 @@ public:
     bool isBackgroundImageValid() const;
 };
 
-
-/*
- * =====================================================================================
- * SECTION 4: GAME ENTITY SYSTEM
- * =====================================================================================
- */
 
  /**
   * @class GameObject
@@ -416,11 +392,6 @@ public:
 };
 
 
-/*
- * =====================================================================================
- * SECTION 5: USER INTERFACE SYSTEM
- * =====================================================================================
- */
 
  /**
   * @class Button
@@ -474,11 +445,6 @@ public:
 };
 
 
-/*
- * =====================================================================================
- * SECTION 6: GAME MANAGER & LOGIC
- * =====================================================================================
- */
 
  /**
   * @enum GameState
@@ -565,11 +531,6 @@ public:
 };
 
 
-/*
- * =====================================================================================
- * IMPLEMENTATION DETAILS
- * =====================================================================================
- */
 
  // ----------------------------------------------------------------------------------
  // Vector2D Implementation
@@ -595,9 +556,6 @@ void Vector2D::addX(double dx) { this->x += dx; }
 void Vector2D::addY(double dy) { this->y += dy; }
 
 
-// ----------------------------------------------------------------------------------
-// MathUtils Implementation
-// ----------------------------------------------------------------------------------
 bool MathUtils::isColliding(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) {
     return (x1 < x2 + w2 && x1 + w1 > x2 &&
         y1 < y2 + h2 && y1 + h1 > y2);
@@ -614,9 +572,7 @@ int MathUtils::clamp(int value, int minVal, int maxVal) {
 }
 
 
-// ----------------------------------------------------------------------------------
-// GraphicsEngine Implementation
-// ----------------------------------------------------------------------------------
+
 void GraphicsEngine::drawImageAlpha(int x, int y, IMAGE* img) {
     if (!img || img->getwidth() == 0) return;
     HDC dstDC = GetImageHDC();
@@ -661,9 +617,6 @@ void GraphicsEngine::outTextCenter(int x, int y, const char* str, int fontSize, 
 }
 
 
-// ----------------------------------------------------------------------------------
-// ResourceManager Implementation
-// ----------------------------------------------------------------------------------
 ResourceManager::ResourceManager() {
     this->hasImgPlayer = false;
     this->hasImgEnemy = false;
@@ -711,9 +664,6 @@ bool ResourceManager::isBulletEnemyImageValid() const { return this->hasImgBulle
 bool ResourceManager::isBackgroundImageValid() const { return this->hasImgBackground; }
 
 
-// ----------------------------------------------------------------------------------
-// GameObject Implementation
-// ----------------------------------------------------------------------------------
 GameObject::GameObject(double _x, double _y, int _w, int _h) {
     this->position.set(_x, _y);
     this->width = _w;
@@ -731,9 +681,6 @@ bool GameObject::getIsAlive() const { return this->isAlive; }
 void GameObject::setIsAlive(bool state) { this->isAlive = state; }
 
 
-// ----------------------------------------------------------------------------------
-// Bullet Implementation
-// ----------------------------------------------------------------------------------
 Bullet::Bullet(double _x, double _y, ResourceManager* _resMgr)
     : GameObject(_x, _y, GameConfig::S(8), GameConfig::S(24)), resMgr(_resMgr) {
 }
@@ -757,9 +704,6 @@ bool Bullet::move() {
 }
 
 
-// ----------------------------------------------------------------------------------
-// EnemyBullet Implementation
-// ----------------------------------------------------------------------------------
 EnemyBullet::EnemyBullet(double _x, double _y, ResourceManager* _resMgr)
     : GameObject(_x, _y, GameConfig::S(8), GameConfig::S(24)), resMgr(_resMgr) {
 }
@@ -783,9 +727,6 @@ bool EnemyBullet::move() {
 }
 
 
-// ----------------------------------------------------------------------------------
-// Enemy Implementation
-// ----------------------------------------------------------------------------------
 Enemy::Enemy(double _x, double _y, ResourceManager* _resMgr)
     : GameObject(_x, _y, GameConfig::S(40), GameConfig::S(40)), resMgr(_resMgr) {
 }
@@ -815,9 +756,6 @@ bool Enemy::move() {
 }
 
 
-// ----------------------------------------------------------------------------------
-// Player Implementation
-// ----------------------------------------------------------------------------------
 Player::Player(ResourceManager* _resMgr)
     : GameObject(GameConfig::GetWindowWidth() / 2 - GameConfig::S(16),
         GameConfig::GetWindowHeight() - GameConfig::S(55),
