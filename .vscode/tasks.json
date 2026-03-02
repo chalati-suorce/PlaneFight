@@ -1,0 +1,68 @@
+﻿{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "CMake: Configure (VS2022 x64 + vcpkg)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--fresh",
+                "-S",
+                "${workspaceFolder}",
+                "-B",
+                "${workspaceFolder}\\build",
+                "-G",
+                "Visual Studio 17 2022",
+                "-A",
+                "x64",
+                "-DCMAKE_TOOLCHAIN_FILE=C:\\src\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+                "-DVCPKG_TARGET_TRIPLET=x64-windows"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake: Build Debug",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}\\build",
+                "--config",
+                "Debug"
+            ],
+            "dependsOn": "CMake: Configure (VS2022 x64 + vcpkg)",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$msCompile"
+            ]
+        },
+        {
+            "label": "CMake: Build Release",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}\\build",
+                "--config",
+                "Release"
+            ],
+            "dependsOn": "CMake: Configure (VS2022 x64 + vcpkg)",
+            "problemMatcher": [
+                "$msCompile"
+            ]
+        },
+        {
+            "label": "CMake: Run Debug (No Debugger)",
+            "type": "process",
+            "command": "${workspaceFolder}\\build\\Debug\\PlaneFight.exe",
+            "options": {
+                "cwd": "${workspaceFolder}\\build\\Debug"
+            },
+            "dependsOn": "CMake: Build Debug",
+            "problemMatcher": []
+        }
+    ]
+}
