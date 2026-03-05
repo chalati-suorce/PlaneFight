@@ -366,3 +366,6 @@ FodyWeavers.xsd
 build/
 cmake-build-debug/
 .idea/
+# Local build/output folders
+build-static/
+dist/

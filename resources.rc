@@ -1,0 +1,7 @@
+#include "resource.h"
+
+IDR_ASSET_LASER_BLUE RCDATA "laserBlue.png"
+IDR_ASSET_LASER_RED RCDATA "laserRed.png"
+IDR_ASSET_PLAYER_BLUE RCDATA "playerShip_blue.png"
+IDR_ASSET_PLAYER_RED RCDATA "playerShip_red.png"
+IDR_ASSET_PURPLE_BG RCDATA "purple.png"
