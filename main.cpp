@@ -33,9 +33,9 @@ using namespace std;
 /* ==================== 界面文本常量 ==================== */
 namespace Texts {
 const char* const MENU_TITLE = u8"\u57FA\u4E8E\u94FE\u8868\u7684\u98DE\u673A\u5927\u6218\u6E38\u620F";
-const char* const BTN_EASY = u8"\u7B80\u5355\u6A21\u5F0F";
-const char* const BTN_NORMAL = u8"\u666E\u901A\u6A21\u5F0F";
-const char* const BTN_HELL = u8"\u5730\u72F1\u6A21\u5F0F";
+const char* const BTN_EASY = u8"\u7B80\u5355\u6A21\u5F0F \u2605";
+const char* const BTN_NORMAL = u8"\u666E\u901A\u6A21\u5F0F \u2605\u2605";
+const char* const BTN_HELL = u8"\u5730\u72F1\u6A21\u5F0F \u2605\u2605\u2605";
 const char* const BTN_PAUSE = u8"\u6682\u505C";
 const char* const BTN_MENU = u8"\u83DC\u5355";
 const char* const BTN_RESUME = u8"\u70B9\u51FB\u7EE7\u7EED";
@@ -467,7 +467,7 @@ class ResourceManager {
             u8"\u6216\u6309 [P] \u952E\u7EE7\u7EED"
             u8"\u6309 [\u7A7A\u683C] \u91CD\u8BD5\uFF0C[ESC] \u8FD4\u56DE\u83DC\u5355"
             u8"SCORE: Final Score GAME OVER MUSIC ON OFF MUTE"
-            u8"\u266A"
+            u8"\u266A\u2605"
             u8"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz[]:,.-_() ";
 
         int rawCount = 0;
@@ -965,7 +965,7 @@ class ChipMusicEngine {
 
     int stepIndex = 0;
     float stepTime = 0;
-    float stepDuration = 60.0f / 150.0f / 4.0f;  // BPM=150, 16分音符
+    float stepDuration = 60.0f / 140.0f / 4.0f;  // BPM=140, 16分音符
     int section = 0, barIndex = 0, stepInBar = 0;
     int arrangementIndex = 0, fillCountdown = 0;
     uint32_t noiseState = 0x12345678u;  // 噪声发生器状态
@@ -982,34 +982,47 @@ class ChipMusicEngine {
         return (float)((noiseState >> 8) & 0xFFFFu) / 32767.5f - 1;
     }
 
-    // 生成一块音频数据
+    // 生成一块音频数据（E小调 i-VI-III-VII 和弦进行）
     void generateChunk() {
-        // 旋律/低音/琶音/鼓组的模式序列
-        static const int melodyA[16] = {79,82,86,82,79,74,79,82,86,89,86,82,79,74,77,79};
-        static const int melodyAp[16] = {79,82,86,89,91,89,86,82,79,82,84,86,84,82,79,77};
-        static const int melodyB[16] = {74,77,81,84,81,77,74,77,79,82,86,89,86,82,79,82};
-        static const int melodyBp[16] = {74,77,81,86,84,81,77,74,79,82,86,91,89,86,82,79};
-        static const int melodyFill[16] = {91,89,86,84,82,81,79,77,76,77,79,81,82,84,86,89};
+        // ---- 旋律：中音区方波，E小调音阶 ----
+        // Em段：围绕 B4-E5 的明亮旋律
+        static const int melEm[16] = {71,0,71,76, 74,0,71,69, 67,0,69,71, 69,67,64,0};
+        // C段：下行到 G4-C5 范围
+        static const int melC[16]  = {67,0,67,72, 71,0,67,64, 60,0,62,64, 67,64,62,0};
+        // G段：上行到 D5-G5，推向高潮
+        static const int melG[16]  = {74,0,74,79, 78,0,74,71, 67,0,69,71, 74,71,69,0};
+        // D段：收束，A4-D5
+        static const int melD[16]  = {69,0,69,74, 72,0,69,66, 62,0,64,66, 69,66,64,0};
+        // Fill：快速下行再上行，制造期待感
+        static const int melFill[16] = {76,74,72,71, 69,67,66,64, 62,64,66,67, 69,71,74,76};
 
-        static const int bassA[16] = {43,0,43,0,38,0,38,0,41,0,41,0,36,0,38,0};
-        static const int bassB[16] = {38,0,38,0,41,0,41,0,43,0,43,0,36,0,38,0};
-        static const int bassFill[16] = {43,43,41,41,38,38,36,36,38,38,41,41,43,43,46,46};
+        // ---- 低音：根音八度跳跃 + 经过音 ----
+        static const int bassEm[16] = {40,0,40,0, 40,0,52,0, 40,0,40,0, 43,0,47,0};
+        static const int bassC[16]  = {48,0,48,0, 48,0,60,0, 48,0,48,0, 52,0,55,0};
+        static const int bassG[16]  = {43,0,43,0, 43,0,55,0, 43,0,43,0, 47,0,50,0};
+        static const int bassD[16]  = {50,0,50,0, 50,0,62,0, 50,0,50,0, 54,0,57,0};
+        static const int bassFill[16] = {40,40,43,43, 47,47,48,48, 50,50,48,48, 47,47,40,52};
 
-        static const int arpA[16] = {67,71,74,79,62,67,71,74,64,67,71,76,60,64,67,71};
-        static const int arpB[16] = {62,65,69,74,64,67,71,76,67,71,74,79,60,64,67,71};
-        static const int arpFill[16] = {71,74,79,83,69,72,76,81,67,71,74,79,64,67,71,76};
+        // ---- 琶音：三角波分解和弦，上行波浪 ----
+        static const int arpEm[16] = {52,55,59,64, 55,59,64,67, 52,55,59,64, 55,59,64,67};
+        static const int arpC[16]  = {48,52,55,60, 52,55,60,64, 48,52,55,60, 52,55,60,64};
+        static const int arpG[16]  = {43,47,50,55, 47,50,55,59, 43,47,50,55, 47,50,55,59};
+        static const int arpD[16]  = {50,54,57,62, 54,57,62,66, 50,54,57,62, 54,57,62,66};
+        static const int arpFill[16] = {64,67,71,76, 60,64,67,72, 55,59,62,67, 52,55,59,64};
 
-        static const int kickA[16]  = {1,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0};
-        static const int snareA[16] = {0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0};
-        static const int ghostA[16] = {0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,1};
-
-        static const int kickB[16]  = {1,0,0,1,0,0,1,0,1,0,0,1,0,1,0,0};
-        static const int snareB[16] = {0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0};
-        static const int ghostB[16] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-
-        static const int kickFill[16]  = {1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,1};
-        static const int snareFill[16] = {0,0,1,0,0,1,0,1,0,1,0,1,0,1,1,1};
-        static const int ghostFill[16] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+        // ---- 鼓组模式 ----
+        // A组（稳定节拍）
+        static const int kickA[16]  = {1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,1,0};
+        static const int snareA[16] = {0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0};
+        static const int hatA[16]   = {1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,1};
+        // B组（稍复杂的变奏）
+        static const int kickB[16]  = {1,0,0,0, 1,0,0,1, 1,0,0,0, 1,0,1,0};
+        static const int snareB[16] = {0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,1};
+        static const int hatB[16]   = {1,1,1,0, 1,0,1,0, 1,1,1,0, 1,0,1,1};
+        // Fill组（密集过门）
+        static const int kickFill[16]  = {1,0,1,0, 1,0,1,0, 1,1,0,1, 1,1,1,1};
+        static const int snareFill[16] = {0,0,0,1, 0,0,1,0, 0,1,0,1, 0,1,1,1};
+        static const int hatFill[16]   = {1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1};
 
         float dt = 1.0f / sampleRate;
 
@@ -1017,7 +1030,7 @@ class ChipMusicEngine {
             globalTime += dt;
             stepTime += dt;
 
-            // 步进序列器
+            // 步进序列器推进
             while (stepTime >= stepDuration) {
                 stepTime -= stepDuration;
                 stepInBar = (stepInBar + 1) & 15;
@@ -1026,82 +1039,95 @@ class ChipMusicEngine {
                 if (stepInBar == 0) {
                     barIndex = (barIndex + 1) & 7;
                     arrangementIndex = (arrangementIndex + 1) & 127;
-                    if (barIndex == 6) fillCountdown = 16;
+                    if (barIndex == 7) fillCountdown = 16;  // 最后一小节触发 fill
                 }
-                // 根据小节确定段落：A / A' / B / Fill / B'
-                if (barIndex < 2) section = 0;
-                else if (barIndex < 4) section = 1;
-                else if (barIndex < 6) section = 2;
-                else if (barIndex == 6) section = 3;
-                else section = 4;
+                // 编曲结构：Em(2小节) -> C(2) -> G(2) -> D(1) -> Fill(1)
+                if (barIndex < 2)      section = 0;  // Em
+                else if (barIndex < 4) section = 1;  // C
+                else if (barIndex < 6) section = 2;  // G
+                else if (barIndex == 6) section = 3; // D
+                else                   section = 4;  // Fill
             }
 
             float stepPhase = stepTime / stepDuration;
-            float gate = 1 - ClampFloat(stepPhase, 0, 1);
             int s = stepInBar & 15;
 
-            // 选择当前段落的模式
-            const int* melody = melodyA, *bass = bassA, *arp = arpA;
-            const int* kickPat = kickA, *snarePat = snareA, *ghostPat = ghostA;
-            if (section == 1) { melody = melodyAp; }
-            else if (section == 2) { melody = melodyB; bass = bassB; arp = arpB; kickPat = kickB; snarePat = snareB; ghostPat = ghostB; }
-            else if (section == 3) { melody = melodyFill; bass = bassFill; arp = arpFill; kickPat = kickFill; snarePat = snareFill; ghostPat = ghostFill; }
-            else if (section == 4) { melody = melodyBp; bass = bassB; arp = arpB; kickPat = kickB; snarePat = snareB; ghostPat = ghostB; }
+            // 根据段落选择对应模式
+            const int* melody = melEm, *bass = bassEm, *arp = arpEm;
+            const int* kickPat = kickA, *snarePat = snareA, *hatPat = hatA;
+            if (section == 1)      { melody = melC;    bass = bassC;    arp = arpC;    }
+            else if (section == 2) { melody = melG;    bass = bassG;    arp = arpG;    kickPat = kickB; snarePat = snareB; hatPat = hatB; }
+            else if (section == 3) { melody = melD;    bass = bassD;    arp = arpD;    kickPat = kickB; snarePat = snareB; hatPat = hatB; }
+            else if (section == 4) { melody = melFill; bass = bassFill; arp = arpFill; kickPat = kickFill; snarePat = snareFill; hatPat = hatFill; }
 
-            int noteMain = melody[s], noteBass = bass[s];
+            int noteMain = melody[s];
+            int noteBass = bass[s];
+            // 琶音：在步进内做快速分解
             int noteArp = arp[(s + ((int)(stepPhase * 4) & 3)) & 15];
 
-            // 调制占空比和门限
-            float duty1 = ClampFloat(0.25f + 0.03f * (((barIndex + arrangementIndex) & 1) ? 1.0f : -1.0f), 0.18f, 0.34f);
-            float duty2 = ClampFloat(0.50f + 0.02f * ((section == 2 || section == 4) ? 1.0f : -1.0f), 0.44f, 0.56f);
-            bool isFill = (section == 3);
-            float gateMain = std::pow(gate, isFill ? 0.36f : 0.52f);
-            float gateBass = std::pow(gate, isFill ? 0.56f : 0.72f);
-            float gateArp  = std::pow(gate, isFill ? 0.70f : 0.88f);
+            // 门限包络（控制音符长短）
+            float gate = 1 - ClampFloat(stepPhase, 0, 1);
+            bool isFill = (section == 4);
+            float gateMain = std::pow(gate, isFill ? 0.40f : 0.55f);  // 旋律较连贯
+            float gateBass = std::pow(gate, isFill ? 0.50f : 0.65f);  // 低音有弹性
+            float gateArp  = std::pow(gate, isFill ? 0.65f : 0.82f);  // 琶音短促
 
-            // 三个声道合成
+            // 占空比微调（段落间略有变化，增加色彩）
+            float duty1 = 0.25f;  // 旋律：25% 方波，甜美
+            float duty2 = 0.50f;  // 低音：50% 方波，厚实
+
+            // ---- 合成三个声道 ----
             float ch1 = 0, ch2 = 0, ch3 = 0;
+
+            // 旋律声道（带微颤音）
             if (noteMain > 0) {
-                phase1 += midiToFreq(noteMain) * dt;
+                float vibrato = 1.0f + 0.003f * std::sin(globalTime * 5.5f);
+                phase1 += midiToFreq(noteMain) * vibrato * dt;
                 if (phase1 >= 1) phase1 -= std::floor(phase1);
                 ch1 = squareWave(phase1, duty1) * gateMain;
             }
+            // 低音声道
             if (noteBass > 0) {
                 phase2 += midiToFreq(noteBass) * dt;
                 if (phase2 >= 1) phase2 -= std::floor(phase2);
                 ch2 = squareWave(phase2, duty2) * gateBass;
             }
+            // 琶音声道（三角波，柔和）
             if (noteArp > 0) {
                 phase3 += midiToFreq(noteArp) * dt;
                 if (phase3 >= 1) phase3 -= std::floor(phase3);
-                ch3 = triWave(phase3) * (0.62f * gateArp);
+                ch3 = triWave(phase3) * (0.55f * gateArp);
             }
 
-            // 鼓组合成
+            // ---- 鼓组合成 ----
+            // 底鼓：正弦波频率滑降
             float kick = 0;
-            if (kickPat[s] && stepPhase < 0.30f) {
-                float e = std::exp(-stepPhase * (isFill ? 20.0f : 18.0f));
-                kick = std::sin(2 * kPi * (55 + (isFill ? 120.0f : 90.0f) * (1 - stepPhase)) * globalTime) * e;
+            if (kickPat[s] && stepPhase < 0.28f) {
+                float env = std::exp(-stepPhase * (isFill ? 22.0f : 16.0f));
+                float freq = 55 + (isFill ? 100.0f : 80.0f) * (1 - stepPhase * 2);
+                kick = std::sin(kTau * freq * globalTime) * env;
             }
+            // 军鼓：噪声突发
             float snare = 0;
-            if (snarePat[s] && stepPhase < 0.24f)
-                snare = nextNoise() * std::exp(-stepPhase * 24);
-            float ghost = 0;
-            if (ghostPat[s] && stepPhase < 0.14f)
-                ghost = nextNoise() * std::exp(-stepPhase * 32) * 0.20f;
+            if (snarePat[s] && stepPhase < 0.22f)
+                snare = nextNoise() * std::exp(-stepPhase * 22);
+            // 踩镲：短促高频噪声
+            float hat = 0;
+            if (hatPat[s] && stepPhase < 0.08f)
+                hat = nextNoise() * std::exp(-stepPhase * 55) * 0.35f;
 
-            // 混音
-            float mix = ch1 * 0.41f + ch2 * 0.35f + ch3 * 0.20f + kick * 0.64f + snare * 0.40f + ghost;
-            if (isFill || fillCountdown > 0) mix *= 1.06f;
+            // ---- 混音 ----
+            float mix = ch1 * 0.34f + ch2 * 0.30f + ch3 * 0.18f
+                      + kick * 0.52f + snare * 0.34f + hat;
+            if (isFill || fillCountdown > 0) mix *= 1.05f;
             if (muted) mix = 0;
-            mix *= 0.28f;
+            mix *= 0.30f;  // 主音量
 
-            // 低通滤波 + 软限幅
-            float lpAlpha = 0.14f + 0.02f * ((barIndex & 1) ? 1.0f : 0.0f)
-                          + 0.02f * ((section == 2 || section == 4) ? 1.0f : 0.0f);
-            lpAlpha = ClampFloat(lpAlpha, 0.12f, 0.21f);
+            // 低通滤波 + 软限幅（消除高频毛刺）
+            float lpAlpha = 0.16f;
+            if (section == 2 || section == 3) lpAlpha = 0.19f;  // G/D段略亮
             lowpassState += (mix - lowpassState) * lpAlpha;
-            buffer[i] = (float)std::tanh(lowpassState * 1.9f) * 0.92f;
+            buffer[i] = (float)std::tanh(lowpassState * 1.8f) * 0.90f;
         }
     }
 
@@ -1170,6 +1196,11 @@ class GameManager {
 
     float endScoreAnimTimer = 0;   // 结算分数动画计时
     int animatedEndScore = 0;
+    float scoreBounce = 0;         // 分数弹跳效果（0=正常，>0=放大中）
+    int lastDisplayScore = 0;      // 上次显示的分数（用于检测变化）
+    float menuShipLane = 0;        // 菜单巡航飞船车道位置
+    float menuShipDir = 0.4f;      // 菜单巡航飞船方向和速度
+    float menuShipDepth = 0.72f;   // 菜单巡航飞船深度
     UiDriftState titleDrift, hudDrift, microDrift;
 
     CameraFXState cameraFX;
@@ -1504,6 +1535,7 @@ class GameManager {
                 float r = ep.screenRadius + bp.screenRadius;
                 if (DistSq(ep.screenPos, bp.screenPos) <= r * r) {
                     score += 10;
+                    scoreBounce = 1.0f;  // 触发分数弹跳
                     destroyed = true;
                     pendingHitPos = ep.screenPos;
                     pendingHitFX = true;
@@ -1722,22 +1754,44 @@ class GameManager {
         }
     }
 
-    // 绘制音乐开关状态指示
+    // 绘制音乐开关指示（右下角紧凑图标）
     void drawMusicIndicator() {
-        int x = 0, y = 0;
-        if (currentState == MENU) { x = GameConfig::GetWindowWidth() - GameConfig::S(36); y = GameConfig::S(9); }
-        else if (currentState == PLAYING || currentState == PAUSED) { x = GameConfig::S(58); y = GameConfig::S(34); }
-        else { x = GameConfig::S(58); y = GameConfig::S(20); }
-        float drift = microDrift.x * 0.45f;
-        GraphicsEngine::drawFxTextCenter(x, y, chipMusic.isMuted() ? Texts::MUSIC_OFF : Texts::MUSIC_ON, GameConfig::S(8), 0.40f, drift);
-        GraphicsEngine::drawFxTextCenter(x, y + GameConfig::S(10), "M: TOGGLE", GameConfig::S(7), 0.32f, drift * 0.75f);
+        int winW = GameConfig::GetWindowWidth(), winH = GameConfig::GetWindowHeight();
+        int x = winW - GameConfig::S(18);
+        int y = winH - GameConfig::S(14);
+
+        bool muted = chipMusic.isMuted();
+        // 音符符号：开启时明亮青色，静音时暗红
+        Color iconColor = muted ? Color{120, 60, 60, 160} : Color{100, 220, 255, 220};
+        float pulse = muted ? 0 : 0.15f * std::sin(uiTime * 3.0f);
+        int fontSize = GameConfig::S(10);
+
+        // 绘制音符图标（带微弱光晕）
+        if (!muted) {
+            BeginBlendMode(BLEND_ADDITIVE);
+            GraphicsEngine::outTextCenter(x, y, u8"\u266A", fontSize + 2);
+            EndBlendMode();
+        }
+        GraphicsEngine::drawFxTextCenter(x, y, u8"\u266A", fontSize, muted ? 0.15f : (0.45f + pulse));
+
+        // 静音时画斜线
+        if (muted) {
+            float r = fontSize * 0.45f;
+            DrawLineEx({x - r, y - r}, {x + r, y + r}, 2, {255, 80, 80, 180});
+        }
+
+        // 底部提示文字（小号，低调）
+        GraphicsEngine::drawFxTextCenter(x, y + GameConfig::S(8), "[M]", GameConfig::S(5), 0.20f);
     }
 
     // 绘制统一 UI 层（根据当前状态绘制不同界面）
     void drawUnifiedUI() {
         int winW = GameConfig::GetWindowWidth(), winH = GameConfig::GetWindowHeight();
-        int leftPad = GameConfig::S(10), topPad = GameConfig::S(6);
+        int leftPad = GameConfig::S(8), topPad = GameConfig::S(4);
         layoutHUD();
+
+        // 更新分数弹跳衰减
+        if (scoreBounce > 0) scoreBounce = std::max(0.0f, scoreBounce - deltaTime * 5.0f);
 
         if (currentState == MENU) {
             GraphicsEngine::drawFxTextCenter(winW / 2, GameConfig::S(40), Texts::MENU_TITLE, GameConfig::S(22), 1, titleDrift.x);
@@ -1748,8 +1802,14 @@ class GameManager {
         }
 
         if (currentState == PLAYING) {
+            // 分数弹跳效果：得分时字体短暂放大 + 颜色闪亮
+            float bounce = EaseOutCubic(scoreBounce);
+            int baseFontSize = GameConfig::S(14);
+            int fontSize = baseFontSize + (int)(bounce * GameConfig::S(4));
+            float intensity = 0.65f + bounce * 0.35f;
             string scoreText = "SCORE: " + to_string(score);
-            GraphicsEngine::drawFxTextCenter(leftPad + GameConfig::S(56), topPad + GameConfig::S(9), scoreText.c_str(), GameConfig::S(16), 0.70f, hudDrift.x);
+            GraphicsEngine::drawFxTextCenter(leftPad + GameConfig::S(48), topPad + GameConfig::S(8),
+                scoreText.c_str(), fontSize, intensity, hudDrift.x);
             btnPause.draw(); btnMenu.draw();
             drawMusicIndicator();
             return;
@@ -1757,7 +1817,8 @@ class GameManager {
 
         if (currentState == PAUSED) {
             string scoreText = "SCORE: " + to_string(score);
-            GraphicsEngine::drawFxTextCenter(leftPad + GameConfig::S(56), topPad + GameConfig::S(9), scoreText.c_str(), GameConfig::S(16), 0.65f, hudDrift.x * 0.95f);
+            GraphicsEngine::drawFxTextCenter(leftPad + GameConfig::S(48), topPad + GameConfig::S(8),
+                scoreText.c_str(), GameConfig::S(14), 0.60f, hudDrift.x * 0.95f);
             // 半透明暂停面板
             int bx = winW / 2 - GameConfig::S(84), by = winH / 2 - GameConfig::S(52);
             Rectangle panel = {(float)bx, (float)by, (float)GameConfig::S(168), (float)GameConfig::S(106)};
@@ -1787,6 +1848,58 @@ class GameManager {
 
     void updateMenu() {
         drawCorridorBackground();
+
+        // 菜单巡航飞船动画：在走廊中自动左右飞行
+        menuShipLane += menuShipDir * deltaTime;
+        if (menuShipLane > 0.75f)  { menuShipLane = 0.75f;  menuShipDir = -RandomRange(0.3f, 0.55f); }
+        if (menuShipLane < -0.75f) { menuShipLane = -0.75f; menuShipDir = RandomRange(0.3f, 0.55f); }
+        // 深度微微浮动
+        menuShipDepth = 0.72f + 0.04f * std::sin(uiTime * 0.8f);
+
+        // 绘制巡航飞船（用摄像机空间）
+        {
+            Vector2 shipScreen = perspectiveMapper.projectToScreen(menuShipLane, menuShipDepth);
+            float shipScale = perspectiveMapper.depthToScale(menuShipDepth);
+            float w = GameConfig::S(32) * shipScale;
+            float h = GameConfig::S(32) * shipScale;
+            float tilt = -menuShipDir * 8.0f;  // 转向时倾斜
+
+            if (resourceManager.isPlayerImageValid()) {
+                Texture2D tex = *resourceManager.getPlayerImage();
+                Rectangle src = {0, 0, (float)tex.width, (float)tex.height};
+                Rectangle dst = {shipScreen.x, shipScreen.y, w, h};
+                ShipVolumeStyle style;
+                style.maxThicknessPx = 4;
+                style.shadowBoost = 1.05f;
+                style.highlightAlpha = 60;
+                style.rimAlpha = 48;
+                GraphicsEngine::drawVolumetricSprite(tex, src, dst, {w * 0.5f, h * 0.5f}, tilt, style, {200, 220, 255, 200});
+            } else {
+                DrawTriangle(
+                    {shipScreen.x, shipScreen.y - h * 0.5f},
+                    {shipScreen.x - w * 0.5f, shipScreen.y + h * 0.5f},
+                    {shipScreen.x + w * 0.5f, shipScreen.y + h * 0.5f},
+                    {50, 150, 250, 180});
+            }
+
+            // 引擎尾焰粒子
+            if (rand() % 3 == 0) {
+                Particle pt;
+                pt.active = true;
+                pt.position = {shipScreen.x + RandomRange(-3, 3), shipScreen.y + h * 0.35f};
+                pt.velocity = {RandomRange(-20, 20), RandomRange(60, 140)};
+                pt.maxLife = RandomRange(0.15f, 0.25f);
+                pt.life = pt.maxLife;
+                pt.size = RandomRange(2, 5) * shipScale;
+                pt.startColor = {80, 180, 255, 180};
+                pt.endColor = {40, 80, 200, 0};
+                pt.priority = 0;
+                particleSystem.emit(pt);
+            }
+        }
+        particleSystem.update(deltaTime);
+        particleSystem.draw();
+
         Vector2 mp = GetMousePosition();
         bool pressed = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
         bool down = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
@@ -1906,6 +2019,8 @@ public:
         pendingHitFX = false;
         endScoreAnimTimer = 0;
         animatedEndScore = 0;
+        scoreBounce = 0;
+        lastDisplayScore = 0;
         enemySpawnTimer = std::max(0.05f, enemySpawnRate / 60.0f);
     }
 
